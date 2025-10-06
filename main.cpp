@@ -1,6 +1,6 @@
 /*
- *Program......: Math Tutor V2
- *Programmers..: Nathan Fletcher, Sean Lee
+ *Program......: Math Tutor V3
+ *Programmers..: Dylan Frohberg, Sean Lee
  *Date.........: 2025.22.9
  *Github Repo..: https://github.com/Ussernam/Math-Tutor-V3.git
  *Description..: An easy math tutor that lets the user know if their answer is correct or incorrect.
