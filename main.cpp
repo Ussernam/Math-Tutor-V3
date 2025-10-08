@@ -9,21 +9,29 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <limits>
+#include <cctype>
 using namespace std;
 
 int main() {
+    const int MAX_ATTEMPTS = 3;
+    const int LEVEL_RANGE_CHANGE = 10;
+
+    enum MathType {ADD = 1, SUBTRACT = 2, MULTIPLY = 3, DIVIDE = 4};
+    MathType mathType = ADD;
+
     string userName = "";
     int leftNum = 1;
     int rightNum = 1;
-    int mathType = 1;
-    char mathSymbol;
+    int totalCorrect = 0;
+    int totalIncorrect = 0;
+    int mathLevel = 1;
+    int currentRange = 10;
+    char mathSymbol = ' ';
     int correctAnswer = 0;
     int userAnswer = 0;
     int temp = 0;
-    const int MAX_ATTEMPTS = 3;
-    const int LEVEL_RANGE_CHANGE = 10;
     string continueOption = "?";
-    bool isCorrect = false;
 
     srand(static_cast<unsigned int>(time(0))); // Seed random number generator
 
@@ -46,7 +54,7 @@ int main() {
 
     // Ask user for their name
     cout << "\nWhat is your name? ";
-    cin >> userName;
+    getline(cin, userName);
 
     // Greet the user
     cout << "Welcome " << userName << " to the Silly Simple Math Tutor!" << endl << endl;
@@ -54,16 +62,16 @@ int main() {
     // Main quiz loop
     do {
         // Generate random problem
-        leftNum = rand() %10 + 1;
-        rightNum = rand() %10 + 1;
-        mathType = rand() %4 + 1;
+        leftNum = rand() % currentRange + 1;
+        rightNum = rand() % currentRange + 1;
+        mathType = static_cast<MathType>(rand() %4 + 1);
 
         switch (mathType) {
-            case 1: // Addition
+            case ADD: // Addition
                 correctAnswer = leftNum + rightNum;
             mathSymbol = '+';
             break;
-            case 2: // Subtraction
+            case SUBTRACT: // Subtraction
                 if (rightNum > leftNum) {
                     temp = leftNum;
                     leftNum = rightNum;
@@ -72,11 +80,11 @@ int main() {
             correctAnswer = leftNum - rightNum;
             mathSymbol = '-';
             break;
-            case 3: // Multiplication
+            case MULTIPLY: // Multiplication
                 correctAnswer = leftNum * rightNum;
             mathSymbol = '*';
             break;
-            case 4: // Division
+            case DIVIDE: // Division
                 correctAnswer = leftNum;
             leftNum *= rightNum;
             mathSymbol = '/';
@@ -89,32 +97,68 @@ int main() {
         }
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            cout << leftNum << " " << mathSymbol << " " << rightNum << " = ";
-            cin >> userAnswer;
+            cout << "[Level #" << mathLevel << "] " << userName << ", what does " << leftNum << " " << mathSymbol << " " << rightNum << " = ";
+
+            // Loop until the user enters numeric data
+            while (!(cin >> userAnswer)) {
+                cin.clear(); // Clear the cin error flag
+                // need to include the limits library to use numeric_limits
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the max input, up to a new line
+                cout << "\tInvalid input!" << endl;
+                cout << "\tPlease enter a number: "; // end of get userAnswer while loop
+            }
+
 
             if (userAnswer == correctAnswer) {
+                totalCorrect++;
                 cout << "Congratulations, " << userName << "! That is the correct answer!" << endl << endl;
-                isCorrect = true;
                 break; // break out of the attempts loop
             } else {
                 if (attempt < MAX_ATTEMPTS) {
+                    totalIncorrect++;
                     cout << "Sorry, that is incorrect!" << endl;
                     cout << "You have " << (MAX_ATTEMPTS - attempt) << " attempts remaining." << endl << endl;
                 } else {
+                    totalIncorrect++;
                     cout << "Sorry, that is incorrect!" << endl;
                     cout << "No attempts remaining. The correct answer was: " << correctAnswer << endl;
-                    cout << "Game over!" << endl;
-                    // Exit the program immediately
-                    return 0;
                 }
             }
         }
+        if (totalCorrect == 3) {
+            mathLevel++;
+            totalCorrect = 0;
+            totalIncorrect = 0;
+            currentRange = currentRange + LEVEL_RANGE_CHANGE;
+            cout << "You leveled up! Your are now level " << mathLevel << " and your new range is " << currentRange << "." << endl;
+        }
+        else if (totalIncorrect == 3 && mathLevel > 1) {
+            mathLevel--;
+            totalCorrect = 0;
+            totalIncorrect = 0;
+            currentRange = currentRange - LEVEL_RANGE_CHANGE;
+            cout << "You dropped a level! Your are now level " << mathLevel << " and your new range is " << currentRange << "." << endl;
+        }
+        getline(cin, continueOption);
+        while (true) {
+            cout << "Do you want to continue (y-yes | n-no)? ";
+            getline(cin, continueOption);
 
-        // Ask to continue only if the answer was correct
-        cout << "Do you want to continue (y=yes | n=no)? ";
-        cin >> continueOption;
-        cout << endl;
+            // to lower case the user's input
+            for (int i = 0; i < continueOption.size(); i++) {
+                continueOption.at(i) = tolower(continueOption.at(i));
+            }
+            if (continueOption == "y" || continueOption == "yes" || continueOption == "n" || continueOption == "no") {
+                break;
+            }
+            else {
+                cout << "Invalid input, please try again.." << endl;
+                cout << endl;
+            } // end of if (y, yes, n, no)
+        }
+
     } while (continueOption == "y" || continueOption == "yes");
+
     // Exit message
     cout << "Sorry, this is all the program does for this moment." << endl;
     cout << "Version 4 is coming soon..." << endl;
